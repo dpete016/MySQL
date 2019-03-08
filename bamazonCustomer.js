@@ -16,5 +16,55 @@ connection.connect(function(err){
 })
 
 var makeTable = function(){
-    connection.query("SELECT * FROM proudcts", functions)
+    connection.query("SELECT * FROM proudcts", function(err,res){
+        for(var i=0; i<res.length; i++){
+            console.log(res[i].itemid+" || "+res[i].productname+" || "+res[i].departmentname+" || "+res[i].rice+" || "+res[i].stockquantity+"\n");
+        }
+    })
+}
+
+var promptCustomer = function(res){
+    inquirer.prompt([{
+        type:'input',
+        name:'choice',
+        message:"What would you like to purchase? [Exit with Q]"
+    }]).then(function(answer){
+        var correct = false;
+        if(answer.choice.toUpperCase()=="Q"{
+            process.exit();
+        }
+        for(var i=0,i<res.length;i++){
+            if(res[i].productname==answer.choice{
+                correct=true;
+                var product=answer.choice;
+                var id=i;
+                inquirer.prompt({
+                    type:"input",
+                    name:"quant",
+                    message:"How many would you like to purchase?",
+                    validate:function(value){
+                        if(isNaN(value))==false){
+                            return true;
+                            else {
+                                return false;
+                            }
+                        }
+                    }
+                }).then(function(answer)){
+                    if((res[id].stockquantity-answer.quant)>0){
+                        connection.query("UPDATE products SET stockquantity='"+(res[id].stockquantity-answer.quant)+"' WHERE productname='"+production+"'",function(err,res2){console.log("Product Bought!");makeTable()
+                    });
+                    } else {
+                        console.log("Not a valid selection!");
+                        promptCustomer(res);
+                    }
+                }
+
+            })
+        }
+    if(i==res.length && correct==false{
+        console.log("Not a valid selection");
+        promptCustomer(res);
+    })    
+    })
 }

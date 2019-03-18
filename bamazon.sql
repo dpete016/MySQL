@@ -1,10 +1,11 @@
-insert into products(ProductName,DepartmentName,Price,StockQuantity)
-values ("Devil May Cry 5","VideoGames",59.99,200),
-("Left Behind","VideoGames",59.99,200),
-("Kingdom Hearts 3","VideoGames",59.99,200),
-("Bootcut Jeans","Clothing",29.99,75),
-("Cards against Humanity","Board Games",9.99,100),
-("Spider-Man Into the Spider-Verse","Film",19.99,150),
-("Got Whey T-shirt","Clothing",9.99,50);
+create database bamazon; 
+use bamazon;
 
-Select * From bamazon.products;
+create table products(
+ item_id integer auto_increment not null,
+ product_name varchar(45) not null,
+ department_name varchar(45) not null,
+ price decimal(10,4) not null,
+ stock_quantity integer(10) not null,
+ primary key (item_id)
+ );

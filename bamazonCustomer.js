@@ -6,7 +6,7 @@ var connection = mysql.createConnection({
     port:3306,
     user:"root",
     password:"band3D016#",
-    database:"bamazon"
+    database:"bamazon",
 })
 
 connection.connect(function(err){
@@ -15,12 +15,17 @@ connection.connect(function(err){
     makeTable();
 })
 
+//talbe formation//
 var makeTable = function(){
-    connection.query("SELECT * FROM proudcts", function(err,res){
+    connection.query("SELECT * FROM products", function(err,res){
+        if (err) throw err;
         for(var i=0; i<res.length; i++){
-            console.log(res[i].itemid+" || "+res[i].productname+" || "+res[i].departmentname+" || "+res[i].rice+" || "+res[i].stockquantity+"\n");
+            console.log(res[i].item_id+" || "+res[i].product_name+ " || "+            
+            res[i].department_name+" || "+res[i].price+" || "+res[i].
+            stock_quantity+"\n");
         }
-    })
+        promptCustomer(res);
+    });
 }
 
 var promptCustomer = function(res){
@@ -33,16 +38,16 @@ var promptCustomer = function(res){
         if(answer.choice.toUpperCase()=="Q"){
             process.exit();
         }
-        for(var i=0;i<res.length;i++){
-            if(res[i].productname==answer.choice){
+        for(var i = 0 ; i < res.length; i++){
+            if(res[i].product_name==answer.choice){
                 correct=true;
-                var product=answer.choice;
+                var products=answer.choice;
                 var id=i;
                 inquirer.prompt({
                     type:"input",
                     name:"quant",
                     message:"How many would you like to purchase?",
-                    validate:function(value){
+                    validate: function(value){
                         if(isNaN(value)==false){
                             return true;
                         } else {
@@ -51,11 +56,13 @@ var promptCustomer = function(res){
                         
                     }
                 }).then(function(answer){
-                    if((res[id].stockquantity-answer.quant)>0){
-                        connection.query("UPDATE products SET stockquantity='"+(res[id].stockquantity-answer.quant)+"' WHERE productname='"+production+"'",function(err,res2){console.log("Product Bought!");makeTable()
+                    if((res[id].stock_quantity-answer.quant)>0){
+                        connection.query("UPDATE products SET stock_quantity='"+(res[id].stock_quantity
+                        -answer.quant)+"' WHERE product_name='"+products
+                        +"'",function(err,res2){console.log("Product Bought!");makeTable()
                     });
                     } else {
-                        console.log("Not a valid selection!");
+                        console.log("Insufficient quantity!");
                         promptCustomer(res);
                     }
                 })

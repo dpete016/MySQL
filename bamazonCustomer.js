@@ -1,5 +1,6 @@
 var mysql = require('mysql');
 var inquirer = require('inquirer');
+var table = require("cli-table");
 
 var connection = mysql.createConnection({
     host:"localhost",
@@ -9,71 +10,104 @@ var connection = mysql.createConnection({
     database:"bamazon",
 })
 
-connection.connect(function(err){
-    if(err) throw err;
-    console.log("connection successful!");
-    makeTable();
-})
+connection.connect(function(err) {
+    if (err) throw err;
 
-//talbe formation//
-var makeTable = function(){
-    connection.query("SELECT * FROM products", function(err,res){
-        if (err) throw err;
-        for(var i=0; i<res.length; i++){
-            console.log(res[i].item_id+" || "+res[i].product_name+ " || "+            
-            res[i].department_name+" || "+res[i].price+" || "+res[i].
-            stock_quantity+"\n");
-        }
-        promptCustomer(res);
+    start();
+});
+
+function start() {
+    
+    console.log("------------------");
+    console.log("Welcome to Bamazon");
+    console.log("__________________");
+    
+    var maketable = new table({
+        head: ["Item Id", "Department", "Price", "Quantity"],
+        colWidth: [10, 75, 7, 10]
+
     });
+    
+    for (var i = 0; i < results.length; i++){
+        table.push([results[i].item_id, res[i].department_name, results[i].Price, results[i].quantity])
+    }
+
+    console.log(ShowTable.toString());
+
+
+    
+
+    inquirer
+     .prompt({
+         name: "confirm",
+         type: "list",
+         message: "Would you like to [BUY] or [EXIT]?",
+         choices: ["BUY", "EXIT"]
+     })
+     .then(function(answer) {
+         if (answer.confirm === "BUY") {
+             Products();
+         }
+        else if(answer.confirm === "EXIT") {
+            connection.end();
+        } 
+    }); 
 }
 
-var promptCustomer = function(res){
-    inquirer.prompt([{
-        type:'input',
-        name:'choice',
-        message:"What would you like to purchase? [Exit with Q]"
-    }]).then(function(answer){
-        var correct = false;
-        if(answer.choice.toUpperCase()=="Q"){
-            process.exit();
-        }
-        for(var i = 0 ; i < res.length; i++){
-            if(res[i].product_name==answer.choice){
-                correct=true;
-                var products=answer.choice;
-                var id=i;
-                inquirer.prompt({
-                    type:"input",
-                    name:"quant",
-                    message:"How many would you like to purchase?",
-                    validate: function(value){
-                        if(isNaN(value)==false){
-                            return true;
-                        } else {
-                              return false;
+
+function Products() {
+    connection.query("SELECT * FROM products", function(err, results) {
+        if (err) throw err;
+        
+        
+       inquirer
+            .prompt([
+                {
+                 name: "item id",
+                 type: "input",
+                    choices: function() {
+                     var productsArray = [];
+                        for (var i = 0; i < results.length; i++) {
+                         productsArray.push(results[i].item_id);
                         }
-                        
-                    }
-                }).then(function(answer){
-                    if((res[id].stock_quantity-answer.quant)>0){
-                        connection.query("UPDATE products SET stock_quantity='"+(res[id].stock_quantity
-                        -answer.quant)+"' WHERE product_name='"+products
-                        +"'",function(err,res2){console.log("Product Bought!");makeTable()
-                    });
-                    } else {
-                        console.log("Insufficient quantity!");
-                        promptCustomer(res);
-                    }
-                })
 
-            }
-        } 
-        if(i==res.length && correct==false){
-         console.log("Not a valid selection!");
-         promptCustomer(res);
-        } 
+                    },
+                    message: "Enter the item id of the product you wish to purchase."
+                },
+                {
+                    name: "quantity",
+                    type: "input",
+                    message: "How many would you like to purchase?"
+                } 
+            ])
+            .then(function(answer) {
 
-    })    
-    
+                var chosenProduct;
+                for (var i = 0; i < results.length; i++) {
+                    if (results[i].product_name === answer.choice) {
+                        chosenProduct = results[i];
+                    }
+                }
+                // If Product has insufficientnumbers
+                if(chosen.stock_quantity > parseInt(answer.quantity)) {
+                    // qunatity is not enough, so re-enter the stock numbers
+                    connection.query(
+                        "Insufficient quantity! Re-enter the numbers?",
+                        [
+                            {
+                             stock_quantity: answer.quantity
+                            },
+                            {
+                                id: chosenProduct.id
+                            }
+                        ],
+                        function(error) {
+                            if (error) throw err;
+                            console.log("Purchase successful!");
+                            start();
+                        }
+                    );
+                }
+            });     
+    });
 }

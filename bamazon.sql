@@ -8,4 +8,7 @@ create table products(
  price decimal(10,4) not null,
  stock_quantity integer(10) not null,
  primary key (item_id)
- );
+);
+
+
+Select * From bamazon.products;

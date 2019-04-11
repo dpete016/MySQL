@@ -17,22 +17,23 @@ connection.connect(function(err) {
 });
 
 function start() {
-    connection.query("SELECT * FROM products", function(err, results) {
+    connection.query("SELECT * FROM bamazon.products", function(err, results) {
         if (err) throw err;
        console.log("------------------");
        console.log("Welcome to Bamazon");
        console.log("__________________");
     
      var maketable = new Table({
-         head: ["Item Id", "Department", "Price", "Quantity"],
-         colWidth: [10, 75, 7, 10]
-        })   
+         head: ["Item Id", "Product", "Department", "Price", "Quantity"],
+         colWidth: [10, 50, 75, 7, 10]
+        });   
       
         for (var i = 0; i < results.length; i++){
-            maketable.push([results[i].item_id, res[i].department_name, results[i].Price, results[i].quantity])
+            maketable.push([results[i].item_id, results[i].product_name, results[i].department_name, results[i].price, results[i].stock_quantity])
         }
         
         console.log(maketable.toString());
+        
           
         inquirer
         .prompt({
@@ -50,9 +51,7 @@ function start() {
            } 
        });
     });
-    
-    
-
+   
     
 
     
@@ -62,14 +61,14 @@ function start() {
 
 
 function Products() {
-    connection.query("SELECT * FROM products", function(err, results) {
+    connection.query("SELECT * FROM bamazon.products", function(err, results) {
         if (err) throw err;
         
         
        inquirer
             .prompt([
                 {
-                 name: "item id",
+                 name: "item_id",
                  type: "input",
                     choices: function() {
                      var productsArray = [];
@@ -89,31 +88,20 @@ function Products() {
             .then(function(answer) {
 
                 var chosenProduct;
+                // If Quantity of product is invalid //
                 for (var i = 0; i < results.length; i++) {
-                    if (results[i].product_name === answer.choice) {
-                        chosenProduct = results[i];
+                    if (answer.item_id === results[i].item_id) {
+                        if(answer.quantity > res[i].quantity) {
+                            console.log("Insufficient quantity!")
+                            connection.end()
+                        };
+                    }
+                    else { 
+                        
+
                     }
                 }
-                // If Product has insufficientnumbers
-                if(chosen.stock_quantity > parseInt(answer.quantity)) {
-                    // qunatity is not enough, so re-enter the stock numbers
-                    connection.query(
-                        "Insufficient quantity! Re-enter the numbers?",
-                        [
-                            {
-                             stock_quantity: answer.quantity
-                            },
-                            {
-                                id: chosenProduct.id
-                            }
-                        ],
-                        function(error) {
-                            if (error) throw err;
-                            console.log("Purchase successful!");
-                            start();
-                        }
-                    );
-                }
+                
             });     
     });
 }

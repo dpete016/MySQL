@@ -1,6 +1,6 @@
 var mysql = require('mysql');
 var inquirer = require('inquirer');
-var Table = require("cli-table");
+var Table = require("cli-table2");
 
 var connection = mysql.createConnection({
     host:"localhost",
@@ -25,11 +25,11 @@ function start() {
     
      var maketable = new Table({
          head: ["Item Id", "Product", "Department", "Price", "Quantity"],
-         colWidth: [10, 50, 75, 7, 10]
+         colWidth: [10, 75, 50, 20, 20]
         });   
       
         for (var i = 0; i < results.length; i++){
-            maketable.push([results[i].item_id, results[i].product_name, results[i].department_name, results[i].price, results[i].stock_quantity])
+            maketable.push([results[i].itemid, results[i].productname, results[i].departmentname, results[i].price, results[i].stockquantity])
         }
         
         console.log(maketable.toString());
@@ -44,7 +44,7 @@ function start() {
         })
         .then(function(answer) {
             if (answer.confirm === "BUY") {
-                Products();
+                Products(results);
             }
            else if(answer.confirm === "EXIT") {
                connection.end();
@@ -60,48 +60,84 @@ function start() {
 }
 
 
-function Products() {
-    connection.query("SELECT * FROM bamazon.products", function(err, results) {
-        if (err) throw err;
-        
+function Products(inventory) {
         
        inquirer
             .prompt([
                 {
                  name: "item_id",
                  type: "input",
-                    choices: function() {
-                     var productsArray = [];
-                        for (var i = 0; i < results.length; i++) {
-                         productsArray.push(results[i].item_id);
-                        }
-
-                    },
-                    message: "Enter the item id of the product you wish to purchase."
+                 message: "Enter the item id of the product you wish to purchase."
                 },
-                {
-                    name: "quantity",
-                    type: "input",
-                    message: "How many would you like to purchase?"
-                } 
+                
             ])
             .then(function(answer) {
+               var itemArray = []; 
+                var choiceId = parseInt(answer.item_id);
+                var product = checkInventory(choiceId, inventory)
 
-                var chosenProduct;
-                // If Quantity of product is invalid //
-                for (var i = 0; i < results.length; i++) {
-                    if (answer.item_id === results[i].item_id) {
-                        if(answer.quantity > res[i].quantity) {
-                            console.log("Insufficient quantity!")
-                            connection.end()
-                        };
-                    }
-                    else { 
-                        
-
-                    }
-                }
-                
+                if (product) {
+                    console.log("We have this item!");
+                    Amount(product);
+                } else {
+                    console.log("\nThis item is not in the inventory.");
+                    start();
+                }         
+      
             });     
-    });
+    };
+
+
+
+function checkInventory(choiceId, inventory) {
+    for (var i = 0; i < inventory.length; i++) {
+        if (inventory[i].itemid == choiceId) {
+            return inventory[i];
+        }
+    }
+
+    return null;
 }
+
+
+
+function Amount(product) {
+    inquirer
+     .prompt([
+        {
+            name: "quantity",
+            type: "input",
+            message: "Enter the amount you want to purchase."
+        }
+      ])
+    .then(function(answer) {
+        var quantity = parseInt(answer.quantity);
+
+        if (quantity <= product.stockquantity) {
+            var newamount = parseInt(quantity) - parseInt(answer.quantity);
+            console.log("Purchase accepted");
+            
+            console.log("Updating Stock");
+            
+            connection.query("UPDATE bamazon.products SET? WHERE?", [{stockquantity: newamount}], function(err, results) {
+        
+             console.log("Stock Updated")
+            });
+            connection.end();
+
+        } else {
+            console.log("Inufficient quantity! Enter again");
+            Amount(product);
+        }
+       
+      }); 
+
+      
+
+
+    }
+   
+function checkQuantity(inventory, choiceId, quantity) {
+        return null;
+    
+    };   

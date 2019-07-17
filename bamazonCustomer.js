@@ -119,7 +119,7 @@ function Amount(product) {
             
             console.log("Updating Stock");
             
-            connection.query("UPDATE bamazon.products SET? WHERE?", [{stockquantity: newamount}], function(err, results) {
+            connection.query("UPDATE products SET ? WHERE ?", [{stockquantity: newamount}], function(err, results) {
         
              console.log("Stock Updated")
             });
